@@ -27,3 +27,11 @@ export interface IDirectoryEntry {
   directoryName: string;
   files: IFileEntry[];
 }
+
+export function isIDirectoryEntry(obj: any): obj is IDirectoryEntry {
+  return (
+    typeof obj === 'object' &&
+    typeof obj.directoryName === 'string' &&
+    Array.isArray(obj.files)
+  );
+}
