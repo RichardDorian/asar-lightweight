@@ -28,11 +28,10 @@ export async function readArchive(
   const sizePickle = createFromBuffer(archive.slice(0, 8));
   const headerSize = sizePickle.createIterator().readUInt32() as number;
 
-  const headerPickle = createFromBuffer(archive.slice(8, headerSize + 8));
+  const rawHeaderSize = headerSize + 8;
+  const headerPickle = createFromBuffer(archive.slice(8, rawHeaderSize));
   const rawHeader = headerPickle.createIterator().readString() as string;
   const header = JSON.parse(rawHeader);
-
-  const fileOffset = headerSize + 16;
 
   const entries: (IFileEntry | IDirectoryEntry)[] = [];
 
@@ -40,7 +39,7 @@ export async function readArchive(
     const entry = header.files[filename];
 
     entries.push(
-      readFileDirectoryEntry(archive, entry, fileOffset + 3, filename)
+      readFileDirectoryEntry(archive, entry, rawHeaderSize, filename)
     );
   }
 

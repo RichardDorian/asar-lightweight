@@ -1,3 +1,8 @@
 const { readArchive } = require('../dist');
+const { readFile } = require('fs/promises');
 
-readArchive('test2.asar');
+(async () => {
+  const archive = await readFile('test2.asar');
+  const content = await readArchive(archive);
+  console.log(content);
+})();
