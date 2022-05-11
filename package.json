@@ -1,0 +1,31 @@
+{
+  "name": "asar-lightweight",
+  "version": "1.0.0",
+  "description": "A lightweight version of asar",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+:///github.com/RichardDorian/asar-lightweight.git"
+  },
+  "keywords": [
+    "asar",
+    "electron"
+  ],
+  "author": "RichardDorian",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/RichardDorian/asar-lightweight/issues"
+  },
+  "homepage": "https://github.com/RichardDorian/asar-lightweight#readme",
+  "devDependencies": {
+    "@types/node": "^17.0.32",
+    "typescript": "^4.6.4"
+  },
+  "dependencies": {
+    "chromium-pickle-js": "^0.2.0"
+  }
+}
