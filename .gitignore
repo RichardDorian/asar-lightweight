@@ -1,3 +1,4 @@
 node_modules/
 dist/
 test/app.asar
+test/app-edited.asar

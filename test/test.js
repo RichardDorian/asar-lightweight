@@ -1,11 +1,11 @@
 const { readArchive, writeArchive } = require('../dist');
-const { readFile } = require('fs/promises');
+const { readFile, writeFile } = require('fs/promises');
 
 (async () => {
-  const archive = await readFile('testWithFolders.asar');
+  const archive = await readFile('app-edited.asar');
   const content = await readArchive(archive);
   console.log(content);
 
-  const packed = await writeArchive(content);
-  console.log(packed.toString('hex'));
+  // const packed = await writeArchive(content);
+  // await writeFile('app-edited.asar', packed);
 })();
