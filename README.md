@@ -39,4 +39,20 @@ const archive = fs.readFileSync('/path/to/archive.asar');
 
 ## Writing
 
-Not implemented yet.
+```js
+const asar = require('asar-lightweight');
+const fs = require('fs');
+
+// Getting the file from the file system (but you can get the Buffer from another source)
+const archive = fs.readFileSync('/path/to/archive.asar');
+
+// Now you can read it, edit the data and then write it back
+// Remember those functions are asynchronous
+(async () => {
+  const content = await asar.readArchive(archive);
+
+  // Do stuff with `content`
+
+  const packed = await asar.writeArchive(content);
+})();
+```
