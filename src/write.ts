@@ -32,6 +32,8 @@ export async function writeArchive(
   archiveContent: (IFileEntry | IDirectoryEntry)[],
   options?: WriteArchiveOptions
 ): Promise<Buffer> {
+  options = options ?? {};
+
   const header: DirectoryEntry = { files: {} };
 
   const buffers = {
@@ -59,7 +61,7 @@ function processDirectoryFileEntry(
   buffers: { content: Buffer },
   entry: IDirectoryEntry | IFileEntry,
   header: DirectoryEntry,
-  options?: WriteArchiveOptions
+  options: WriteArchiveOptions
 ): void {
   if (isIDirectoryEntry(entry))
     writeDirectoryEntry(buffers, entry, header, options);
@@ -70,7 +72,7 @@ function writeDirectoryEntry(
   buffers: { content: Buffer },
   directoryEntry: IDirectoryEntry,
   header: DirectoryEntry,
-  options?: WriteArchiveOptions
+  options: WriteArchiveOptions
 ): void {
   header.files[directoryEntry.directoryName] = { files: {} };
 
@@ -88,7 +90,7 @@ function writeFileEntry(
   entry: IFileEntry,
   buffers: { content: Buffer },
   header: DirectoryEntry,
-  options?: WriteArchiveOptions
+  options: WriteArchiveOptions
 ): void {
   const size = entry.data.length;
   const offset = buffers.content.length;
@@ -103,13 +105,13 @@ function writeFileEntryHeader(
   offset: number,
   size: number,
   header: DirectoryEntry,
-  options?: WriteArchiveOptions
+  options: WriteArchiveOptions
 ): void {
   const hash = createHash('sha256');
 
   const fileHeader: FileEntry = { offset: offset.toString(), size };
 
-  if (options?.skipIntegrity)
+  if (options.skipIntegrity)
     return void (header.files[entry.filename] = fileHeader);
 
   // 4MB block size
