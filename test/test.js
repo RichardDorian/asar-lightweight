@@ -2,10 +2,18 @@ const { readArchive, writeArchive } = require('../dist');
 const { readFile, writeFile } = require('fs/promises');
 
 (async () => {
-  const archive = await readFile('app-edited.asar');
+  console.time('readFile');
+  const archive = await readFile('app.asar');
+  console.timeEnd('readFile');
+  console.time('readArchive');
   const content = await readArchive(archive);
-  console.log(content);
+  console.timeEnd('readArchive');
 
-  // const packed = await writeArchive(content);
-  // await writeFile('app-edited.asar', packed);
+  console.time('writeArchive');
+  const packed = await writeArchive(content, { skipIntegrity: true });
+  console.timeEnd('writeArchive');
+
+  console.time('writeFile');
+  await writeFile('app-edited.asar', packed);
+  console.timeEnd('writeFile');
 })();

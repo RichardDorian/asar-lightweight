@@ -2,7 +2,7 @@ export type FileEntry = {
   offset: string;
   size: number;
   executable?: boolean;
-  integrity: {
+  integrity?: {
     hash: string;
     algorithm: 'SHA256';
     blocks: string[];

@@ -2,6 +2,7 @@ import { createEmpty } from 'chromium-pickle-js';
 import { createHash } from 'crypto';
 import {
   DirectoryEntry,
+  FileEntry,
   IDirectoryEntry,
   IFileEntry,
   isIDirectoryEntry,
@@ -10,6 +11,7 @@ import {
 /**
  * Writes an parsed asar archive to a buffer
  * @param archiveContent The content of the archive
+ * @param options Options to pass to the writer
  * @returns The packed archive
  * @example
  * ```js
@@ -27,7 +29,8 @@ import {
  * ```
  */
 export async function writeArchive(
-  archiveContent: (IFileEntry | IDirectoryEntry)[]
+  archiveContent: (IFileEntry | IDirectoryEntry)[],
+  options?: WriteArchiveOptions
 ): Promise<Buffer> {
   const header: DirectoryEntry = { files: {} };
 
@@ -37,7 +40,7 @@ export async function writeArchive(
   };
 
   for (const entry of archiveContent)
-    processDirectoryFileEntry(buffers, entry, header);
+    processDirectoryFileEntry(buffers, entry, header, options);
 
   const headerPickle = createEmpty();
   headerPickle.writeString(JSON.stringify(header));
@@ -55,16 +58,19 @@ export async function writeArchive(
 function processDirectoryFileEntry(
   buffers: { content: Buffer },
   entry: IDirectoryEntry | IFileEntry,
-  header: DirectoryEntry
+  header: DirectoryEntry,
+  options?: WriteArchiveOptions
 ): void {
-  if (isIDirectoryEntry(entry)) writeDirectoryEntry(buffers, entry, header);
-  else writeFileEntry(entry, buffers, header);
+  if (isIDirectoryEntry(entry))
+    writeDirectoryEntry(buffers, entry, header, options);
+  else writeFileEntry(entry, buffers, header, options);
 }
 
 function writeDirectoryEntry(
   buffers: { content: Buffer },
   directoryEntry: IDirectoryEntry,
-  header: DirectoryEntry
+  header: DirectoryEntry,
+  options?: WriteArchiveOptions
 ): void {
   header.files[directoryEntry.directoryName] = { files: {} };
 
@@ -72,7 +78,8 @@ function writeDirectoryEntry(
     processDirectoryFileEntry(
       buffers,
       entry,
-      header.files[directoryEntry.directoryName] as DirectoryEntry
+      header.files[directoryEntry.directoryName] as DirectoryEntry,
+      options
     );
   }
 }
@@ -80,23 +87,30 @@ function writeDirectoryEntry(
 function writeFileEntry(
   entry: IFileEntry,
   buffers: { content: Buffer },
-  header: DirectoryEntry
+  header: DirectoryEntry,
+  options?: WriteArchiveOptions
 ): void {
   const size = entry.data.length;
   const offset = buffers.content.length;
 
   buffers.content = Buffer.concat([buffers.content, entry.data]);
 
-  writeFileEntryHeader(entry, offset, size, header);
+  writeFileEntryHeader(entry, offset, size, header, options);
 }
 
 function writeFileEntryHeader(
   entry: IFileEntry,
   offset: number,
   size: number,
-  header: DirectoryEntry
+  header: DirectoryEntry,
+  options?: WriteArchiveOptions
 ): void {
   const hash = createHash('sha256');
+
+  const fileHeader: FileEntry = { offset: offset.toString(), size };
+
+  if (options?.skipIntegrity)
+    return void (header.files[entry.filename] = fileHeader);
 
   // 4MB block size
   const blockSize = 4 * 1024 * 1024;
@@ -108,15 +122,17 @@ function writeFileEntryHeader(
     blocks.push(createHash('sha256').update(data).digest('hex'));
   }
 
-  header.files[entry.filename] = {
-    offset: offset.toString(),
-    size,
-    executable: true,
-    integrity: {
-      algorithm: 'SHA256',
-      hash: hash.digest('hex'),
-      blocks,
-      blockSize,
-    },
+  fileHeader.integrity = {
+    algorithm: 'SHA256',
+    hash: hash.digest('hex'),
+    blocks,
+    blockSize,
   };
+
+  header.files[entry.filename] = fileHeader;
+}
+
+export interface WriteArchiveOptions {
+  /** Whether or not to skip file integrity in header */
+  skipIntegrity?: boolean;
 }
