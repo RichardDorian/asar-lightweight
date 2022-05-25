@@ -41,8 +41,10 @@ export async function writeArchive(
     content: Buffer.alloc(0),
   };
 
+  console.time('process');
   for (const entry of archiveContent)
-    processDirectoryFileEntry(buffers, entry, header, options);
+    await processDirectoryFileEntry(buffers, entry, header, options);
+  console.timeEnd('process');
 
   const headerPickle = createEmpty();
   headerPickle.writeString(JSON.stringify(header));
@@ -57,12 +59,12 @@ export async function writeArchive(
   return Buffer.concat([buffers.header, buffers.content]);
 }
 
-function processDirectoryFileEntry(
+async function processDirectoryFileEntry(
   buffers: { content: Buffer },
   entry: IDirectoryEntry | IFileEntry,
   header: DirectoryEntry,
   options: WriteArchiveOptions
-): void {
+): Promise<void> {
   if (isIDirectoryEntry(entry))
     writeDirectoryEntry(buffers, entry, header, options);
   else writeFileEntry(entry, buffers, header, options);
@@ -107,8 +109,6 @@ function writeFileEntryHeader(
   header: DirectoryEntry,
   options: WriteArchiveOptions
 ): void {
-  const hash = createHash('sha256');
-
   const fileHeader: FileEntry = { offset: offset.toString(), size };
 
   if (options.skipIntegrity)
@@ -118,6 +118,7 @@ function writeFileEntryHeader(
   const blockSize = 4 * 1024 * 1024;
   const blocks: string[] = [];
 
+  const hash = createHash('sha256');
   for (let i = 0; i < entry.data.length; i += blockSize) {
     const data = entry.data.slice(i, i + blockSize);
     hash.update(data);
