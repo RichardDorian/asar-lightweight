@@ -42,7 +42,7 @@ export async function writeArchive(
   const buffers = {
     header: Buffer.alloc(0),
     content: Buffer.allocUnsafe(totalSize),
-    offset: 0
+    offset: 0,
   };
 
   for (const entry of archiveContent)
@@ -61,16 +61,19 @@ export async function writeArchive(
   return Buffer.concat([buffers.header, buffers.content]);
 }
 
-function calculateSize(archiveContent: (IFileEntry | IDirectoryEntry)[]): number {
+function calculateSize(
+  archiveContent: (IFileEntry | IDirectoryEntry)[]
+): number {
   return archiveContent.reduce((acc, curr) => {
     let currentSize;
-    if (isIDirectoryEntry(curr)) currentSize = calculateSize(curr.files); else currentSize = curr.data.length
+    if (isIDirectoryEntry(curr)) currentSize = calculateSize(curr.files);
+    else currentSize = curr.data.length;
     return acc + currentSize;
   }, 0);
 }
 
 async function processDirectoryFileEntry(
-  buffers: { content: Buffer, offset: number },
+  buffers: { content: Buffer; offset: number },
   entry: IDirectoryEntry | IFileEntry,
   header: DirectoryEntry,
   options: WriteArchiveOptions
@@ -81,7 +84,7 @@ async function processDirectoryFileEntry(
 }
 
 function writeDirectoryEntry(
-  buffers: { content: Buffer, offset: number },
+  buffers: { content: Buffer; offset: number },
   directoryEntry: IDirectoryEntry,
   header: DirectoryEntry,
   options: WriteArchiveOptions
@@ -100,7 +103,7 @@ function writeDirectoryEntry(
 
 function writeFileEntry(
   entry: IFileEntry,
-  buffers: { content: Buffer, offset: number },
+  buffers: { content: Buffer; offset: number },
   header: DirectoryEntry,
   options: WriteArchiveOptions
 ): void {
@@ -109,7 +112,7 @@ function writeFileEntry(
   entry.data.copy(buffers.content, buffers.offset);
   buffers.offset += size;
 
-  writeFileEntryHeader(entry, buffers.offset, size, header, options);
+  writeFileEntryHeader(entry, buffers.offset - size, size, header, options);
 }
 
 function writeFileEntryHeader(
