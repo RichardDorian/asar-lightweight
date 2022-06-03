@@ -10,11 +10,8 @@ const { readFile, writeFile } = require('fs/promises');
   console.timeEnd('readArchive');
 
   console.time('writeArchive');
-  const packed = writeArchive(content, { skipIntegrity: true });
+  const packed = await writeArchive(content, { skipIntegrity: true });
   console.timeEnd('writeArchive');
 
-  // console.time('writeFile');
-  // await writeFile('app-edited.asar', packed);
-  // console.timeEnd('writeFile');
-  console.log('other process');
+  console.log(packed);
 })();
