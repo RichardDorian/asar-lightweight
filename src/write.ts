@@ -36,15 +36,17 @@ export async function writeArchive(
 
   const header: DirectoryEntry = { files: {} };
 
+  // We can predict content size which might speed up the writing process
+  const totalSize = calculateSize(archiveContent);
+
   const buffers = {
     header: Buffer.alloc(0),
-    content: Buffer.alloc(0),
+    content: Buffer.allocUnsafe(totalSize),
+    offset: 0
   };
 
-  console.time('process');
   for (const entry of archiveContent)
     await processDirectoryFileEntry(buffers, entry, header, options);
-  console.timeEnd('process');
 
   const headerPickle = createEmpty();
   headerPickle.writeString(JSON.stringify(header));
@@ -59,8 +61,16 @@ export async function writeArchive(
   return Buffer.concat([buffers.header, buffers.content]);
 }
 
+function calculateSize(archiveContent: (IFileEntry | IDirectoryEntry)[]): number {
+  return archiveContent.reduce((acc, curr) => {
+    let currentSize;
+    if (isIDirectoryEntry(curr)) currentSize = calculateSize(curr.files); else currentSize = curr.data.length
+    return acc + currentSize;
+  }, 0);
+}
+
 async function processDirectoryFileEntry(
-  buffers: { content: Buffer },
+  buffers: { content: Buffer, offset: number },
   entry: IDirectoryEntry | IFileEntry,
   header: DirectoryEntry,
   options: WriteArchiveOptions
@@ -71,7 +81,7 @@ async function processDirectoryFileEntry(
 }
 
 function writeDirectoryEntry(
-  buffers: { content: Buffer },
+  buffers: { content: Buffer, offset: number },
   directoryEntry: IDirectoryEntry,
   header: DirectoryEntry,
   options: WriteArchiveOptions
@@ -90,16 +100,16 @@ function writeDirectoryEntry(
 
 function writeFileEntry(
   entry: IFileEntry,
-  buffers: { content: Buffer },
+  buffers: { content: Buffer, offset: number },
   header: DirectoryEntry,
   options: WriteArchiveOptions
 ): void {
   const size = entry.data.length;
-  const offset = buffers.content.length;
 
-  buffers.content = Buffer.concat([buffers.content, entry.data]);
+  entry.data.copy(buffers.content, buffers.offset);
+  buffers.offset += size;
 
-  writeFileEntryHeader(entry, offset, size, header, options);
+  writeFileEntryHeader(entry, buffers.offset, size, header, options);
 }
 
 function writeFileEntryHeader(
