@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import {

@@ -1,9 +1,13 @@
 {
   "name": "asar-lightweight",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A lightweight version of asar",
   "main": "dist/index.js",
-  "bin": "dist/bin.js",
+  "bin": {
+    "asar": "dist/bin.js",
+    "asar-light": "dist/bin.js",
+    "asar-lightweight": "dist/bin.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc"
