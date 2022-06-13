@@ -25,7 +25,7 @@ export interface IFileEntry {
 
 export interface IDirectoryEntry {
   directoryName: string;
-  files: IFileEntry[];
+  files: (IFileEntry | IDirectoryEntry)[];
 }
 
 export function isIDirectoryEntry(obj: any): obj is IDirectoryEntry {
