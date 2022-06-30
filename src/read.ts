@@ -3,6 +3,7 @@ import {
   DirectoryEntry,
   FileEntry,
   IDirectoryEntry,
+  IEntryProperties,
   IFileEntry,
   isDirectoryEntry,
 } from './types';
@@ -39,7 +40,9 @@ export async function readArchive(
     const entry = header.files[filename];
 
     entries.push(
-      readFileDirectoryEntry(archive, entry, rawHeaderSize, filename)
+      readFileDirectoryEntry(archive, entry, rawHeaderSize, filename, {
+        unpacked: entry.unpacked,
+      })
     );
   }
 
@@ -50,11 +53,12 @@ function readFileDirectoryEntry(
   archive: Buffer,
   entry: DirectoryEntry | FileEntry,
   offset: number,
-  name: string
+  name: string,
+  properties: IEntryProperties
 ): IFileEntry | IDirectoryEntry {
   if (isDirectoryEntry(entry))
     return readDirectoryEntry(archive, entry, offset, name);
-  else return readFileEntry(archive, entry, offset, name);
+  else return readFileEntry(archive, entry, offset, name, properties);
 }
 
 function readDirectoryEntry(
@@ -68,7 +72,10 @@ function readDirectoryEntry(
   for (const filename in entry.files) {
     const _entry = entry.files[filename];
     files.push(
-      readFileDirectoryEntry(archive, _entry, directoryOffset, filename)
+      readFileDirectoryEntry(archive, _entry, directoryOffset, filename, {
+        // @ts-ignore
+        unpacked: _entry.unpacked,
+      })
     );
   }
 
@@ -79,12 +86,17 @@ function readFileEntry(
   archive: Buffer,
   entry: FileEntry,
   fileOffset: number,
-  filename: string
+  filename: string,
+  properties?: { unpacked?: boolean }
 ): IFileEntry {
   const start = fileOffset + parseInt(entry.offset);
+
+  const _properties: IEntryProperties = {};
+  if (properties?.unpacked) _properties.unpacked = true;
 
   return {
     filename,
     data: archive.slice(start, start + entry.size),
+    ..._properties,
   };
 }

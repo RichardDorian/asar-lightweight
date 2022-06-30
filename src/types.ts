@@ -2,6 +2,7 @@ export type FileEntry = {
   offset: string;
   size: number;
   executable?: boolean;
+  unpacked?: boolean;
   integrity?: {
     hash: string;
     algorithm: 'SHA256';
@@ -9,6 +10,10 @@ export type FileEntry = {
     blockSize: number;
   };
 };
+
+export interface IEntryProperties {
+  unpacked?: boolean;
+}
 
 export interface DirectoryEntry {
   files: { [key: string]: DirectoryEntry | FileEntry };
@@ -21,6 +26,7 @@ export function isDirectoryEntry(obj: any): obj is DirectoryEntry {
 export interface IFileEntry {
   filename: string;
   data: Buffer;
+  unpacked?: boolean;
 }
 
 export interface IDirectoryEntry {

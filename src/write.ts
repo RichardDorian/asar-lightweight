@@ -4,6 +4,7 @@ import {
   DirectoryEntry,
   FileEntry,
   IDirectoryEntry,
+  IEntryProperties,
   IFileEntry,
   isIDirectoryEntry,
 } from './types';
@@ -112,7 +113,9 @@ function writeFileEntry(
   entry.data.copy(buffers.content, buffers.offset);
   buffers.offset += size;
 
-  writeFileEntryHeader(entry, buffers.offset - size, size, header, options);
+  writeFileEntryHeader(entry, buffers.offset - size, size, header, options, {
+    unpacked: entry.unpacked,
+  });
 }
 
 function writeFileEntryHeader(
@@ -120,9 +123,14 @@ function writeFileEntryHeader(
   offset: number,
   size: number,
   header: DirectoryEntry,
-  options: WriteArchiveOptions
+  options: WriteArchiveOptions,
+  properties: IEntryProperties
 ): void {
-  const fileHeader: FileEntry = { offset: offset.toString(), size };
+  const fileHeader: FileEntry = {
+    offset: offset.toString(),
+    size,
+    ...properties,
+  };
 
   if (options.skipIntegrity)
     return void (header.files[entry.filename] = fileHeader);
