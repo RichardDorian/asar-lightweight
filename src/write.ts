@@ -33,7 +33,9 @@ export async function writeArchive(
   archiveContent: (IFileEntry | IDirectoryEntry)[],
   options?: WriteArchiveOptions
 ): Promise<Buffer> {
-  options = options ?? {};
+  // options = options ?? {}
+  // is better but webpack can go crazy
+  options = options ? options : {};
 
   const header: DirectoryEntry = { files: {} };
 

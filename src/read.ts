@@ -92,7 +92,8 @@ function readFileEntry(
   const start = fileOffset + parseInt(entry.offset);
 
   const _properties: IEntryProperties = {};
-  if (properties?.unpacked) _properties.unpacked = true;
+  if (properties && typeof properties.unpacked === 'boolean')
+    _properties.unpacked = properties.unpacked;
 
   return {
     filename,
